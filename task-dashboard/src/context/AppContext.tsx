@@ -12,6 +12,8 @@ import {
   initialState,
   type AppState,
   type AppAction,
+  type Task,
+  type User,
 } from '../reducers/appReducer'
 
 const STORAGE_KEY = 'task-dashboard-state'
@@ -19,6 +21,41 @@ const STORAGE_KEY = 'task-dashboard-state'
 type AppContextValue = {
   state: AppState
   dispatch: Dispatch<AppAction>
+}
+
+function isUser(value: unknown): value is User | null {
+  if (value === null) {
+    return true
+  }
+
+  if (typeof value !== 'object') {
+    return false
+  }
+
+  return (
+    'name' in value &&
+    'email' in value &&
+    typeof value.name === 'string' &&
+    typeof value.email === 'string'
+  )
+}
+
+function isTaskArray(value: unknown): value is Task[] {
+  return (
+      Array.isArray(value) &&
+    value.every(
+      (task) =>
+        typeof task === 'object' &&
+        task !== null &&
+        'id' in task &&
+        'title' in task &&
+        'completed' in task &&
+        typeof task.id === 'number' &&
+        Number.isInteger(task.id) &&
+        typeof task.title === 'string' &&
+        typeof task.completed === 'boolean'
+    )
+  )
 }
 
 function getInitialState(): AppState {
@@ -33,27 +70,23 @@ function getInitialState(): AppState {
         parsed !== null &&
         'theme' in parsed &&
         (parsed.theme === 'light' || parsed.theme === 'dark') &&
-        'user' in parsed
+        'user' in parsed &&
+        isUser(parsed.user)
       ) {
-        const user = parsed.user
+        const tasks =
+          'tasks' in parsed && isTaskArray(parsed.tasks)
+            ? parsed.tasks
+            : initialState.tasks
 
-        if (
-          user === null ||
-          (typeof user === 'object' &&
-            user !== null &&
-            'name' in user &&
-            'email' in user &&
-            typeof user.name === 'string' &&
-            typeof user.email === 'string')
-        ) {
-          return {
-            theme: parsed.theme,
-            user,
-          } as AppState
+        return {
+          theme: parsed.theme,
+          user: parsed.user,
+          tasks,
         }
       }
     }
   } catch {
+    // Use the default state if saved data is invalid.
   }
 
   return initialState
@@ -76,6 +109,7 @@ export function AppProvider({
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch {
+      // Continue running if localStorage is unavailable.
     }
   }, [state])
 
