@@ -4,12 +4,10 @@ export type User = {
 }
 
 export type Task = {
-id : number
-title : string
-completed: boolean
-
+  id: number
+  title: string
+  completed: boolean
 }
-
 
 export type AppState = {
   theme: 'light' | 'dark'
@@ -25,6 +23,13 @@ export type AppAction =
   | { type: 'ADD_TASK'; payload: Task }
   | { type: 'DELETE_TASK'; payload: number }
   | { type: 'TOGGLE_TASK'; payload: number }
+  | {
+      type: 'SET_TASK_COMPLETED'
+      payload: {
+        id: number
+        completed: boolean
+      }
+    }
 
 export const initialState: AppState = {
   theme: 'light',
@@ -32,10 +37,10 @@ export const initialState: AppState = {
     name: 'Reyhane',
     email: 'reyhane@example.com',
   },
-  tasks:[
-    {id: 1, title: 'Learn English', completed: false},
-    {id: 2, title: 'Learn Spanish', completed: false},
-    {id: 3, title: 'Learn  French', completed: false},
+  tasks: [
+    { id: 1, title: 'Learn English', completed: false },
+    { id: 2, title: 'Learn Spanish', completed: false },
+    { id: 3, title: 'Learn French', completed: false },
   ],
 }
 
@@ -69,26 +74,41 @@ export function appReducer(
       }
 
     case 'ADD_TASK':
-       return {
+      return {
         ...state,
-       tasks: [...state.tasks, action.payload],
-     }
+        tasks: [...state.tasks, action.payload],
+      }
 
-     case 'DELETE_TASK':
-  return {
-    ...state,
-    tasks: state.tasks.filter((task) => task.id !== action.payload),
-  }
+    case 'DELETE_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.filter(
+          (task) => task.id !== action.payload
+        ),
+      }
 
-case 'TOGGLE_TASK':
-  return {
-    ...state,
-    tasks: state.tasks.map((task) =>
-      task.id === action.payload
-        ? { ...task, completed: !task.completed }
-        : task
-    ),
-  }
+    case 'TOGGLE_TASK':
+      return {
+        ...state,
+        tasks: state.tasks.map((task) =>
+          task.id === action.payload
+            ? { ...task, completed: !task.completed }
+            : task
+        ),
+      }
+
+    case 'SET_TASK_COMPLETED':
+      return {
+        ...state,
+        tasks: state.tasks.map((task) =>
+          task.id === action.payload.id
+            ? {
+                ...task,
+                completed: action.payload.completed,
+              }
+            : task
+        ),
+      }
 
     default:
       return state
