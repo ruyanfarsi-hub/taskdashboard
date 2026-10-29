@@ -52,6 +52,5 @@ Task Details
 )
 
   }
- 
 
 export default TaskDetails
